@@ -12,6 +12,7 @@ import labourRoutes from "./routes/labourRoutes.js";
 import machineRoutes from "./routes/machineRoutes.js";
 import machineAllocationRoutes from "./routes/machineAllocationRoutes.js";
 import machineUsageRoutes from "./routes/machineUsageRoutes.js";
+import taskRoutes from "./routes/taskRoutes.js";
 // import Labour from "./models/Labour.js";
 
 dotenv.config();
@@ -34,6 +35,8 @@ app.use("/api/attendance", attendanceRoutes);
 app.use("/api/machine", machineRoutes);
 app.use("/api/machine/allocation", machineAllocationRoutes);
 app.use("/api/machine/usage", machineUsageRoutes);
+
+app.use("/api/task", taskRoutes);
 
 // Fixed the root route - you can't use JSX in Express
 app.get("/", (req, res) => {

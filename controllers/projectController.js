@@ -34,7 +34,8 @@ export const getAllProjects = async (req, res) => {
         const projects = await Project.find()
             .populate("managerId", "name email phone role")
             .populate("projectIncharge", "name email phone role")
-            .populate("createdBy", "name email");
+            .populate("createdBy", "name email")
+            .populate("supervisors", "name email phone role");
 
         res.status(200).json({
             message: "Projects fetched successfully",
@@ -55,7 +56,8 @@ export const getProjectById = async (req, res) => {
         const project = await Project.findById(req.params.id)
             .populate("managerId", "name email phone role")
             .populate("projectIncharge", "name email phone role")
-            .populate("createdBy", "name email");
+            .populate("createdBy", "name email")
+            .populate("supervisors", "name email phone role");
 
         if (!project) {
             return res.status(404).json({ message: "Project Not Found" });
@@ -222,16 +224,15 @@ export const getManagerProjects = async (req, res) => {
 
         const projects = await Project.find({ managerId })
             .populate("managerId", "name email phone role")
-            .populate("createdBy", "name email");
+            .populate("createdBy", "name email")
+
+
 
         if (projects.length === 0) {
-            return res.status(200).json({
-                message: "No projects assigned yet",
-                projects: []
-            });
+            return res.status(200).json([]);
         }
 
-        res.status(200).json(projects);
+        res.status(200).json(projects); 2
 
     } catch (error) {
         res.status(500).json({
@@ -240,6 +241,8 @@ export const getManagerProjects = async (req, res) => {
         });
     }
 };
+
+
 
 export const assignSupervisor = async (req, res) => {
     try {
@@ -250,17 +253,19 @@ export const assignSupervisor = async (req, res) => {
             return res.status(404).json({ message: "Project not found" });
         }
 
-        // Add supervisor only if not already added
-        if (project.supervisors.includes(supervisorId)) {
-            return res.status(400).json({ message: "Supervisor already assigned" });
-        }
-
-        project.supervisors.push(supervisorId);
+        // 🔥 Always keep only 1 supervisor (replace)
+        project.supervisors = [supervisorId];
         await project.save();
+
+        // 🔥 Return fully populated project
+        const populatedProject = await Project.findById(projectId)
+            .populate("managerId", "name email phone role")
+            .populate("createdBy", "name email")
+            .populate("supervisors", "name email phone role");
 
         res.status(200).json({
             message: "Supervisor assigned successfully",
-            project
+            project: populatedProject
         });
 
     } catch (error) {
@@ -270,6 +275,9 @@ export const assignSupervisor = async (req, res) => {
         });
     }
 };
+
+
+
 
 
 export const assignLabour = async (req, res) => {
