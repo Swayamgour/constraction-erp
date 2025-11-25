@@ -61,10 +61,9 @@ export const getProjectById = async (req, res) => {
             return res.status(404).json({ message: "Project Not Found" });
         }
 
-        res.status(200).json({
-            message: "Project fetched successfully",
-            project,
-        });
+        res.status(200).json(
+            project
+        );
     } catch (error) {
         res.status(500).json({ message: "Error fetching project", error });
     }
