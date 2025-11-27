@@ -37,20 +37,33 @@ export const addMaterialRequest = async (req, res) => {
 // GET MATERIAL REQUESTS
 export const getMaterialRequests = async (req, res) => {
     try {
-        const requests = await MaterialRequest.find()
+        const userRole = req.user.role; // admin, manager, supervisor
+        const userId = req.user.id;     // logged in user id
+
+        let query = {};
+
+        // Supervisor: only own requests
+        if (userRole === "supervisor") {
+            query = { requestedBy: userId };
+        }
+
+        // Admin + Manager: see all, so query remains {}
+
+        const requests = await MaterialRequest.find(query)
             .populate("projectId", "projectName projectCode")
             .populate("itemId", "name type unit")
             .populate("requestedBy", "name role");
 
-        return res.status(200).json(requests);
+        res.status(200).json(requests);
 
     } catch (error) {
-        return res.status(500).json({
+        res.status(500).json({
             message: "Error fetching Material Requests",
             error: error.message
         });
     }
 };
+
 
 export const getPendingRequests = async (req, res) => {
     try {

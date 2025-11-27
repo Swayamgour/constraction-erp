@@ -17,7 +17,7 @@ const router = express.Router();
 router.post("/add", auth, roleCheck("supervisor", "manager", "admin"), addMaterialRequest);
 
 // Admin + manager can view all requests
-router.get("/all", auth, roleCheck("manager", "admin"), getMaterialRequests);
+router.get("/all", auth, roleCheck("manager", "admin", "supervisor"), getMaterialRequests);
 
 router.get(
     "/pending",

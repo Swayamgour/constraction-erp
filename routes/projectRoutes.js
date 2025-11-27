@@ -28,7 +28,7 @@ router.put("/update/:id", auth, roleCheck("admin", "manager"), updateProject);
 router.post("/assign-manager", auth, roleCheck("admin"), assignManager);
 
 // OPTIONAL (manager or admin)
-router.get("/", auth, roleCheck("admin"), getAllProjects);
+router.get("/", auth, roleCheck("admin", "manager", "supervisor"), getAllProjects);
 
 // Get Manager Projects
 router.get("/my-projects", auth, getManagerProjects);

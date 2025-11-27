@@ -12,7 +12,7 @@ import { roleCheck } from "../middleware/role.js";
 
 const router = express.Router();
 
-router.get("/all", auth, roleCheck("admin", "manager"), getAllVendors);
+router.get("/all", auth, roleCheck("admin", "manager" , "supervisor"), getAllVendors);
 
 router.post("/add", auth, roleCheck("admin", "manager"), addVendor);
 

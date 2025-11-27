@@ -6,12 +6,22 @@ import {
   updateMachine,
   deleteMachine,
 } from "../controllers/machineController.js";
+
+import { getMaintenanceMachines } from "../controllers/maintenanceController.js";
 import { auth } from "../middleware/auth.js";
 import { roleCheck } from "../middleware/role.js";
 
 const router = express.Router();
 
-// Add machine (admin/manager)
+// ⭐ Maintenance List (MUST be BEFORE /:id)
+router.get(
+  "/maintenance",
+  auth,
+  roleCheck("admin", "manager", "supervisor"),
+  getMaintenanceMachines
+);
+
+// ➕ Add machine
 router.post(
   "/add",
   auth,
@@ -19,7 +29,7 @@ router.post(
   addMachine
 );
 
-// Get machines
+// 📃 Get all machines
 router.get(
   "/all",
   auth,
@@ -27,7 +37,7 @@ router.get(
   getMachines
 );
 
-// Get single
+// ✨ Get single machine (ALWAYS LAST)
 router.get(
   "/:id",
   auth,
@@ -35,7 +45,7 @@ router.get(
   getMachineById
 );
 
-// Update
+// ✏ Update machine
 router.put(
   "/:id",
   auth,
@@ -43,7 +53,7 @@ router.put(
   updateMachine
 );
 
-// Delete
+// 🗑 Delete machine
 router.delete(
   "/:id",
   auth,

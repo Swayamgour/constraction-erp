@@ -31,20 +31,40 @@ export const createProject = async (req, res) => {
 // ----------------------------
 export const getAllProjects = async (req, res) => {
     try {
-        const projects = await Project.find()
+        const userId = req.user.id;       // Logged user ID
+        const userRole = req.user.role;   // admin | manager | supervisor
+
+        let query = {};
+
+        // ⚡ If Manager → only his assigned projects
+        if (userRole === "manager") {
+            query = { managerId: userId };
+        }
+
+        // ⚡ If Supervisor → only his assigned projects
+        if (userRole === "supervisor") {
+            query = { supervisors: userId }; // supervisors (ARRAY)
+        }
+
+        // ⚡ If Admin → query remains empty → fetch all
+
+        const projects = await Project.find(query)
             .populate("managerId", "name email phone role")
             .populate("projectIncharge", "name email phone role")
             .populate("createdBy", "name email")
             .populate("supervisors", "name email phone role");
 
-        res.status(200).json({
-            message: "Projects fetched successfully",
-            projects,
-        });
+        res.status(200).json(projects);
+
     } catch (error) {
-        res.status(500).json({ message: "Error fetching projects", error });
+        res.status(500).json({
+            message: "Error fetching projects",
+            error: error.message,
+        });
     }
 };
+
+
 
 
 
@@ -80,10 +100,7 @@ export const getSupervisorProjects = async (req, res) => {
             .populate("managerId", "name email phone")
             .populate("supervisors", "name email phone");
 
-        res.status(200).json({
-            message: "Assigned supervisor projects fetched successfully",
-            projects
-        });
+        res.status(200).json(projects);
 
     } catch (error) {
         res.status(500).json({
