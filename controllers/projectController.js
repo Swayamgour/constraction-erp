@@ -31,31 +31,26 @@ export const createProject = async (req, res) => {
 // ----------------------------
 export const getAllProjects = async (req, res) => {
     try {
-        const userId = req.user.id;       // Logged user ID
-        const userRole = req.user.role;   // admin | manager | supervisor
+        const userId = req.user.id;     // Logged user ID
+        const userRole = req.user.role; // admin | manager | supervisor
 
         let query = {};
 
-        // ⚡ If Manager → only his assigned projects
         if (userRole === "manager") {
-            query = { managerId: userId };
+            query.managerId = userId;
         }
-
-        // ⚡ If Supervisor → only his assigned projects
         if (userRole === "supervisor") {
-            query = { supervisors: userId }; // supervisors (ARRAY)
+            query.supervisors = userId; // supervisors ARRAY
         }
-
-        // ⚡ If Admin → query remains empty → fetch all
 
         const projects = await Project.find(query)
             .populate("managerId", "name email phone role")
             .populate("projectIncharge", "name email phone role")
             .populate("createdBy", "name email")
-            .populate("supervisors", "name email phone role");
+            .populate("supervisors", "name email phone role")
+            .sort({ createdAt: -1 });     // 📌 Latest first
 
         res.status(200).json(projects);
-
     } catch (error) {
         res.status(500).json({
             message: "Error fetching projects",
@@ -63,6 +58,7 @@ export const getAllProjects = async (req, res) => {
         });
     }
 };
+
 
 
 

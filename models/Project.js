@@ -19,6 +19,9 @@ const projectSchema = new mongoose.Schema(
         siteArea: String,
         builtUpArea: String,
         landmark: String,
+        latitude: { type: Number },
+        longitude: { type: Number },
+        locationMapLink: String,
 
         // CLIENT / COMPANY DETAILS
         companyName: String,
