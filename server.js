@@ -14,11 +14,14 @@ import machineAllocationRoutes from "./routes/machineAllocationRoutes.js";
 import machineUsageRoutes from "./routes/machineUsageRoutes.js";
 import taskRoutes from "./routes/taskRoutes.js";
 import reportRoutes from "./routes/reportRoutes.js";
+import grnRoutes from "./routes/grnRoutes.js";
+import consumptionRoutes from "./routes/consumptionRoutes.js";
 // import { labourReport, machineReport, projectReport } from "../controllers/reportController.js";
 // import Labour from "./models/Labour.js";
 
 
 import stockRoutes from "./routes/stockRoutes.js";
+import assignmentRoutes from "./routes/assignmentRoutes.js";
 // import materialRequestRoutes from "./routes/materialRequestRoutes.js";
 // import projectRoutes from "./routes/projectRoutes.js";
 // import authRoutes from "./routes/authRoutes.js"; // Example
@@ -41,7 +44,7 @@ app.use("/api/assignLabour", labourRoutes);
 app.use("/api/mr", materialRequestRoutes);
 app.use("/api/attendance", attendanceRoutes);
 
-app.use("/api/machine", machineRoutes);
+// app.use("/api/machine", machineRoutes);
 app.use("/api/machine/allocation", machineAllocationRoutes);
 app.use("/api/machine/usage", machineUsageRoutes);
 
@@ -49,6 +52,14 @@ app.use("/api/task", taskRoutes);
 app.use("/api/stock", stockRoutes);
 
 app.use("/api/report", reportRoutes);
+app.use("/api/grn", grnRoutes);
+app.use("/api/consumption", consumptionRoutes);
+app.use("/uploads", express.static("uploads"));
+
+app.use("/api/machines", machineRoutes);
+
+app.use("/api/assignments", assignmentRoutes);
+// app.use("/api/", consumptionRoutes);
 
 // Fixed the root route - you can't use JSX in Express
 app.get("/", (req, res) => {

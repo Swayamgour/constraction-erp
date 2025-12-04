@@ -7,21 +7,24 @@ const labourSchema = new mongoose.Schema({
     gender: { type: String, enum: ["Male", "Female", "Other"], default: null },
     age: { type: Number, default: null },
 
-    // Labour Type (Permanent/Contract + Labour/Mistri)
+    // Labour / Mistri / Operator Type
     labourType: {
         type: String,
         enum: [
             "Permanent Labour",
             "Permanent Mistri",
             "Contract Labour",
-            "Contract Mistri"
+            "Contract Mistri",
+            "Permanent Operator",     // ✔ Added
+            "Contract Operator"       // ✔ Added
         ],
         required: true
     },
 
+    // Category
     category: {
         type: String,
-        enum: ["Labour", "Mistri"],
+        enum: ["Labour", "Mistri", "Operator"],  // ✔ Added Operator
         required: true
     },
 
@@ -31,7 +34,6 @@ const labourSchema = new mongoose.Schema({
         required: true
     },
 
-    // Wage Type
     wageType: { type: String, enum: ["Daily", "Monthly"], required: true },
 
     dailyWage: { type: Number, default: null },
@@ -40,9 +42,8 @@ const labourSchema = new mongoose.Schema({
     aadhaarNumber: { type: String, default: null },
     address: { type: String, required: true },
 
-    status: { type: String, enum: ["Active", "Inactive"], default: "Active" },
+    status: { type: String, enum: ["Active", "Inactive", "Left"], default: "Active" },
 
-    // If labour working on projects
     assignedProjects: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: "Project"
@@ -51,6 +52,24 @@ const labourSchema = new mongoose.Schema({
     createdBy: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User"
+    },
+
+    bankName: { type: String },
+    accountNumber: { type: String },
+    ifscCode: { type: String },
+    joinDate: { type: Date },
+
+    contractorName: { type: String },
+
+    emergencyContact: {
+        name: String,
+        phone: String
+    },
+
+    documents: {
+        aadhaar: String,
+        pan: String,
+        photo: String
     }
 
 }, { timestamps: true });

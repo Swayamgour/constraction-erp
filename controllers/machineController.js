@@ -1,111 +1,62 @@
 import Machine from "../models/Machine.js";
+import MachineMaintenance from "../models/MachineMaintenance.js";
+import MachineAssignment from "../models/MachineAssignment.js";
+import DailyUsage from "../models/DailyUsage.js";
+import mongoose from "mongoose";
 
-// ADD MACHINE
+/* add machine with files */
 export const addMachine = async (req, res) => {
   try {
-    const {
-      name,
-      code,
-      machineType,
-      ownership,
-      vendorId,
-      modelNo,
-      registrationNo,
-      capacity,
-      fuelType,
-      rateType,
-      rentRate,
-      internalRate,
-    } = req.body;
+    const { machineNumber, engineNumber, chassisNumber, machineType, ownedOrRented, rcExpiry, insuranceExpiry, notes } = req.body;
 
-    if (!name || !machineType || !ownership) {
-      return res.status(400).json({ message: "name, machineType & ownership are required" });
+    const doc = {
+      machineNumber, engineNumber, chassisNumber, machineType, ownedOrRented, notes
+    };
+
+    if (req.files) {
+      if (req.files.photo) doc.photo = req.files.photo[0].path;
+      if (req.files.rcFile) doc.rcFile = req.files.rcFile[0].path;
+      if (req.files.insuranceFile) doc.insuranceFile = req.files.insuranceFile[0].path;
     }
 
-    // If rented machine, vendorId should exist
-    if (ownership === "Rented" && !vendorId) {
-      return res.status(400).json({ message: "vendorId required for rented machine" });
-    }
+    if (rcExpiry) doc.rcExpiry = new Date(rcExpiry);
+    if (insuranceExpiry) doc.insuranceExpiry = new Date(insuranceExpiry);
 
-    const machine = await Machine.create({
-      name,
-      code,
-      machineType,
-      ownership,
-      vendorId: vendorId || null,
-      modelNo,
-      registrationNo,
-      capacity,
-      fuelType,
-      rateType,
-      rentRate,
-      internalRate,
-      createdBy: req.user?.id || null,
-    });
-
-    res.status(201).json({ message: "Machine added successfully", data: machine });
-  } catch (error) {
-    console.error("Add Machine Error:", error);
-    res.status(500).json({ message: "Error adding machine", error: error.message });
+    const machine = await Machine.create(doc);
+    res.status(201).json({ message: "Machine added", machine });
+  } catch (err) {
+    res.status(500).json({ message: "Error adding machine", error: err.message });
   }
 };
 
-// GET ALL MACHINES (with optional filters)
-export const getMachines = async (req, res) => {
+/* get all machines */
+export const getAllMachines = async (req, res) => {
   try {
-    const { ownership, status } = req.query;
-
-    const filter = {};
-    if (ownership) filter.ownership = ownership;
-    if (status) filter.status = status;
-
-    const machines = await Machine.find(filter)
-      .populate("vendorId", "companyName phone")
-      .populate("currentProjectId", "projectName projectCode")
-      .sort({ createdAt: -1 });
-
-    res.status(200).json({ message: "Machines list", data: machines });
-  } catch (error) {
-    res.status(500).json({ message: "Error fetching machines", error: error.message });
+    const machines = await Machine.find().sort({ createdAt: -1 });
+    res.json({ message: "Machines fetched", machines });
+  } catch (err) {
+    res.status(500).json({ message: "Error", error: err.message });
   }
 };
 
-// GET SINGLE MACHINE
-export const getMachineById = async (req, res) => {
+/* get single machine + history summary */
+export const getMachineDetails = async (req, res) => {
   try {
-    const machine = await Machine.findById(req.params.id)
-      .populate("vendorId", "companyName phone")
-      .populate("currentProjectId", "projectName projectCode");
+    const { id } = req.params;
+    if (!mongoose.isValidObjectId(id)) return res.status(400).json({ message: "Invalid id" });
 
-    if (!machine) return res.status(404).json({ message: "Machine not found" });
+    const machine = await Machine.findById(id);
+    if (!machine) return res.status(404).json({ message: "Not found" });
 
-    res.status(200).json({ data: machine });
-  } catch (error) {
-    res.status(500).json({ message: "Error fetching machine", error: error.message });
-  }
-};
+    const maintenance = await MachineMaintenance.find({ machineId: id }).sort({ serviceDate: -1 });
+    const assignments = await MachineAssignment.find({ machineId: id }).sort({ assignDate: -1 });
+    const usage = await DailyUsage.find({ machineId: id }).sort({ date: -1 }).limit(30);
 
-// UPDATE MACHINE
-export const updateMachine = async (req, res) => {
-  try {
-    const updated = await Machine.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    // total maintenance cost (example)
+    const totalCost = maintenance.reduce((s, m) => s + (m.cost || 0), 0);
 
-    if (!updated) return res.status(404).json({ message: "Machine not found" });
-
-    res.status(200).json({ message: "Machine updated", data: updated });
-  } catch (error) {
-    res.status(500).json({ message: "Error updating machine", error: error.message });
-  }
-};
-
-// DELETE MACHINE
-export const deleteMachine = async (req, res) => {
-  try {
-    const deleted = await Machine.findByIdAndDelete(req.params.id);
-    if (!deleted) return res.status(404).json({ message: "Machine not found" });
-
-    res.status(200).json({ message: "Machine deleted" });
-  } catch (error) {
-    res.status(500).json({ message: "Error deleting machine", error: error.message });
+    res.json({ message: "Machine details", machine, maintenance, assignments, usage, totalMaintenanceCost: totalCost });
+  } catch (err) {
+    res.status(500).json({ message: "Error", error: err.message });
   }
 };

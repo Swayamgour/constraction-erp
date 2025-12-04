@@ -2,6 +2,13 @@ import User from "../models/User.js";
 import Labour from "../models/Labour.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import Attendance from "../models/Attendance.js";
+
+import mongoose from "mongoose";
+// import Labour from "../models/Labour.js";
+// import Attendance from "../models/Attendance.js";
+// import Project from "../models/Project.js";
+
 
 // REGISTER USER
 export const registerUser = async (req, res) => {
@@ -181,14 +188,13 @@ export const addLabour = async (req, res) => {
             return res.status(400).json({ message: "Labour already exists" });
         }
 
-        // Create labour
         const labour = await Labour.create({
             name,
             phone,
             gender,
             age,
-            labourType,
-            category,
+            labourType,   // now supports operator
+            category,     // supports: Labour, Mistri, Operator
             skillLevel,
             wageType,
             dailyWage: wageType === "Daily" ? dailyWage : null,
@@ -201,17 +207,18 @@ export const addLabour = async (req, res) => {
         });
 
         res.status(201).json({
-            message: "Labour added successfully",
+            message: "Labour/Operator added successfully",
             labour
         });
 
     } catch (error) {
         res.status(500).json({
-            message: "Error adding labour",
+            message: "Error adding labour/operator",
             error: error.message
         });
     }
 };
+
 
 
 
@@ -243,61 +250,102 @@ export const getLabours = async (req, res) => {
 };
 
 
-
-
-
 export const getLaboursById = async (req, res) => {
     try {
         const { id } = req.params;
 
-        // Fetch labour + populate assigned project name
-        const labour = await Labour.findById(id)
-            .populate("assignedProjects", "projectName");
-
-        if (!labour) {
-            return res.status(404).json({ message: "Labour not found" });
+        if (!id) {
+            return res.status(400).json({ message: "labourId required" });
         }
 
-        // Success
-        res.status(200).json(labour);
+        const labourObjId = new mongoose.Types.ObjectId(id);
 
-    } catch (error) {
-        res.status(500).json({
-            message: "Error fetching labour",
-            error: error.message
+        const labour = await Labour.aggregate([
+            {
+                // 🔥 Filter only 1 labour
+                $match: { _id: labourObjId }
+            },
+
+            {
+                // 🔥 Get attendance history for this ONE labour
+                $lookup: {
+                    from: "attendances",
+
+                    let: { labourObjId: labourObjId },
+
+                    pipeline: [
+                        {
+                            $match: {
+                                $expr: {
+                                    $or: [
+                                        // Case 1 — attendance.labourId is ObjectId
+                                        { $eq: ["$labourId", "$$labourObjId"] },
+
+                                        // Case 2 — attendance.labourId stored as string
+                                        { $eq: ["$labourId", { $toString: "$$labourObjId" }] },
+
+                                        // Case 3 — attendance.labourId convert string → ObjectId
+                                        {
+                                            $eq: [
+                                                { $toObjectId: "$labourId" },
+                                                "$$labourObjId"
+                                            ]
+                                        }
+                                    ]
+                                }
+                            }
+                        },
+
+                        { $project: { status: 1, date: 1, projectId: 1, _id: 0 } },
+                        { $sort: { date: -1 } }
+                    ],
+
+                    as: "attendanceHistory"
+                }
+            },
+
+            {
+                // 🔥 Get assigned project details
+                $lookup: {
+                    from: "projects",
+                    localField: "assignedProjects",
+                    foreignField: "_id",
+                    as: "assignedProjects"
+                }
+            },
+
+            {
+                // 🔥 Final returned fields
+                $project: {
+                    name: 1,
+                    phone: 1,
+                    skillLevel: 1,
+                    wageType: 1,
+                    dailyWage: 1,
+                    monthlySalary: 1,
+                    labourType: 1,
+                    category: 1,
+                    status: 1,
+                    address: 1,
+                    createdAt: 1,
+
+                    assignedProjects: {
+                        _id: 1,
+                        projectName: 1
+                    },
+
+                    attendanceHistory: 1
+                }
+            }
+        ]);
+
+        return res.status(200).json(labour[0]);  // Only one
+
+    } catch (err) {
+        return res.status(500).json({
+            message: "Error fetching labour details",
+            error: err.message
         });
     }
 };
-
-
-
-// export const checkLogin = async (req, res) => {
-//     try {
-//         const userId = req.user._id; // auth middleware se aaya
-
-//         // fresh complete user data from database
-//         const user = await User.findById(userId).select("-password");
-
-//         if (!user) {
-//             return res.status(404).json({
-//                 success: false,
-//                 message: "User not found"
-//             });
-//         }
-
-//         res.json({
-//             success: true,
-//             message: "Token is valid",
-//             user: user
-//         });
-
-//     } catch (error) {
-//         res.status(500).json({
-//             success: false,
-//             message: "Something went wrong",
-//             error: error.message
-//         });
-//     }
-// };
-
 

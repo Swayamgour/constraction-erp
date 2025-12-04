@@ -1,52 +1,25 @@
 import mongoose from "mongoose";
 
-const machineSchema = new mongoose.Schema(
-  {
-    // Basic Info
-    name: { type: String, required: true, trim: true }, // JCB-01, Roller-02
-    code: { type: String, trim: true },                 // optional unique code
-    machineType: { type: String, required: true },      // JCB, Mixer, Roller etc.
+const machineSchema = new mongoose.Schema({
+  machineNumber: { type: String, required: true, unique: true }, // unique id / plate
+  engineNumber: { type: String },
+  chassisNumber: { type: String },
+  machineType: { type: String }, // e.g., Excavator, Truck
+  ownedOrRented: { type: String, enum: ["owned","rented"], default: "owned" },
 
-    // Ownership
-    ownership: {
-      type: String,
-      enum: ["Owned", "Rented"],
-      required: true,
-    },
+  // file paths / urls
+  photo: { type: String },        // local path or cloud URL
+  rcFile: { type: String },
+  insuranceFile: { type: String },
 
-    vendorId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Vendor",
-      default: null, // required when ownership = "Rented"
-    },
+  // document expiry useful for reminders
+  rcExpiry: { type: Date },
+  insuranceExpiry: { type: Date },
 
-    // Technical Details
-    modelNo: { type: String, default: null },
-    registrationNo: { type: String, default: null },
-    capacity: { type: String, default: null }, // 10T, 5m3 etc.
-    fuelType: { type: String, enum: ["Diesel", "Petrol", "Electric", "NA"], default: "Diesel" },
+  notes: { type: String },
 
-    // Rates
-    rateType: { type: String, enum: ["Hour", "Day", "Month"], default: "Hour" },
-    rentRate: { type: Number, default: 0 },      // For rented machines (Vendor ko dena)
-    internalRate: { type: Number, default: 0 },  // For owned machines (cost calculation)
-
-    // Status & Current Location
-    status: {
-      type: String,
-      enum: ["Active", "InMaintenance", "Inactive"],
-      default: "Active",
-    },
-    currentProjectId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Project",
-      default: null,
-    },
-
-    // Audit
-    createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-  },
-  { timestamps: true }
-);
+  // status
+  active: { type: Boolean, default: true }
+}, { timestamps: true });
 
 export default mongoose.model("Machine", machineSchema);

@@ -70,3 +70,97 @@ export const getLaboursByProject = async (req, res) => {
         });
     }
 };
+
+
+export const unassignLabour = async (req, res) => {
+    try {
+        const { labourId, projectId } = req.body;
+
+        if (!labourId || !projectId)
+            return res.status(400).json({ message: "labourId and projectId required" });
+
+        const labour = await Labour.findById(labourId);
+        if (!labour) return res.status(404).json({ message: "Labour not found" });
+
+        const project = await Project.findById(projectId);
+        if (!project) return res.status(404).json({ message: "Project not found" });
+
+        // 1) Remove project from labour
+        labour.assignedProjects = labour.assignedProjects.filter(
+            (p) => p.toString() !== projectId
+        );
+        await labour.save();
+
+        // 2) Remove labour from project
+        project.labours = project.labours.filter(
+            (l) => l.toString() !== labourId
+        );
+        await project.save();
+
+        return res.status(200).json({
+            message: "Labour unassigned successfully",
+            labour,
+            project
+        });
+
+    } catch (error) {
+        return res.status(500).json({
+            message: "Error removing labour",
+            error: error.message
+        });
+    }
+};
+
+
+
+export const reassignLabour = async (req, res) => {
+    try {
+        const { labourId, oldProjectId, newProjectId } = req.body;
+
+        if (!labourId || !oldProjectId || !newProjectId)
+            return res.status(400).json({ message: "Missing fields" });
+
+        const labour = await Labour.findById(labourId);
+        const oldProject = await Project.findById(oldProjectId);
+        const newProject = await Project.findById(newProjectId);
+
+        if (!labour) return res.status(404).json({ message: "Labour not found" });
+        if (!oldProject) return res.status(404).json({ message: "Old project not found" });
+        if (!newProject) return res.status(404).json({ message: "New project not found" });
+
+        // 1) Remove from labour
+        labour.assignedProjects = labour.assignedProjects.filter(
+            (p) => p.toString() !== oldProjectId
+        );
+
+        // 2) Add new project
+        if (!labour.assignedProjects.includes(newProjectId)) {
+            labour.assignedProjects.push(newProjectId);
+        }
+        await labour.save();
+
+        // 3) Remove labour from old project
+        oldProject.labours = oldProject.labours.filter(
+            (l) => l.toString() !== labourId
+        );
+        await oldProject.save();
+
+        // 4) Add labour to new project
+        if (!newProject.labours.includes(labourId)) {
+            newProject.labours.push(labourId);
+        }
+        await newProject.save();
+
+        return res.status(200).json({
+            message: "Labour reassigned successfully",
+            labour
+        });
+
+    } catch (error) {
+        return res.status(500).json({
+            message: "Error reassigning labour",
+            error: error.message
+        });
+    }
+};
+

@@ -15,6 +15,9 @@ import { auth } from "../middleware/auth.js";
 import { roleCheck } from "../middleware/role.js";
 import User from "../models/User.js";
 
+import Attendance from "../models/Attendance.js";
+
+
 const router = express.Router();
 
 router.post("/register", registerUser);
@@ -54,6 +57,10 @@ router.get(
     roleCheck("admin", "manager", "supervisor"),
     getLabours
 );
+
+
+
+
 
 router.get(
     "/labours/:id",

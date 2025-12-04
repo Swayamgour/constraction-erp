@@ -1,64 +1,29 @@
 import express from "express";
-import {
-  addMachine,
-  getMachines,
-  getMachineById,
-  updateMachine,
-  deleteMachine,
-} from "../controllers/machineController.js";
-
-import { getMaintenanceMachines } from "../controllers/maintenanceController.js";
-import { auth } from "../middleware/auth.js";
-import { roleCheck } from "../middleware/role.js";
+import { upload } from "../middleware/upload.js";
+import { addMachine, getAllMachines, getMachineDetails } from "../controllers/machineController.js";
+import { addMaintenance, getMaintenanceHistory } from "../controllers/maintenanceController.js";
+import { upsertDailyUsage, getDailyUsage } from "../controllers/usageController.js";
 
 const router = express.Router();
 
-// ⭐ Maintenance List (MUST be BEFORE /:id)
-router.get(
-  "/maintenance",
-  auth,
-  roleCheck("admin", "manager", "supervisor"),
-  getMaintenanceMachines
-);
-
-// ➕ Add machine
-router.post(
-  "/add",
-  auth,
-  roleCheck("admin", "manager"),
+router.post("/add",
+  upload.disk.single([
+    { name: "photo", maxCount: 1 },
+    { name: "rcFile", maxCount: 1 },
+    { name: "insuranceFile", maxCount: 1 }
+  ]),
   addMachine
 );
 
-// 📃 Get all machines
-router.get(
-  "/all",
-  auth,
-  roleCheck("admin", "manager", "supervisor"),
-  getMachines
-);
+router.get("/all", getAllMachines);
+router.get("/:id", getMachineDetails);
 
-// ✨ Get single machine (ALWAYS LAST)
-router.get(
-  "/:id",
-  auth,
-  roleCheck("admin", "manager", "supervisor"),
-  getMachineById
-);
+// maintenance
+router.post("/maintenance/add", upload.disk.single("billFile"), addMaintenance);
+router.get("/:machineId/maintenance", getMaintenanceHistory);
 
-// ✏ Update machine
-router.put(
-  "/:id",
-  auth,
-  roleCheck("admin", "manager"),
-  updateMachine
-);
-
-// 🗑 Delete machine
-router.delete(
-  "/:id",
-  auth,
-  roleCheck("admin"),
-  deleteMachine
-);
+// daily usage
+router.post("/usage", upsertDailyUsage);
+router.get("/usage", getDailyUsage);
 
 export default router;

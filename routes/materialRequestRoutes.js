@@ -5,7 +5,8 @@ import {
     getPendingRequests,
     approveMaterialRequest,
     rejectMaterialRequest,
-    getPurchaseOrder
+    getPurchaseOrder,
+    getSingleMaterialRequest
     // rejectMaterialRequest
 
 } from "../controllers/materialRequestController.js";
@@ -49,6 +50,15 @@ router.get(
     roleCheck("manager", "admin", "supervisor"),
     getPurchaseOrder
 );
+
+
+router.get(
+    "/material-request/:id",
+    auth,
+    roleCheck("manager", "admin", "supervisor"),
+    getSingleMaterialRequest
+);
+
 
 
 

@@ -241,5 +241,34 @@ export const getPurchaseOrder = async (req, res) => {
 };
 
 
+export const getSingleMaterialRequest = async (req, res) => {
+    try {
+        const mrId = req.params.id;
+
+        const mr = await MaterialRequest.findById(mrId)
+            .populate("projectId", "projectName projectCode")
+            .populate("items.itemId", "name unit type")
+            .populate("items.vendorId", "companyName phone email")
+            .populate("requestedBy", "name role")
+            .populate("approvedBy", "name role");
+
+        if (!mr) {
+            return res.status(404).json({ message: "Material Request not found" });
+        }
+
+        res.status(200).json(
+            mr
+        );
+
+    } catch (error) {
+        res.status(500).json({
+            message: "Error fetching MR",
+            error: error.message
+        });
+    }
+};
+
+
+
 
 

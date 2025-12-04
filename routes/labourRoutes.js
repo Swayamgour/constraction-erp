@@ -1,7 +1,9 @@
 import express from "express";
 import {
     assignLabour,
-    getLaboursByProject
+    getLaboursByProject,
+    unassignLabour,
+    reassignLabour
 } from "../controllers/labourController.js";
 
 import { auth } from "../middleware/auth.js";
@@ -22,6 +24,22 @@ router.get(
     roleCheck("admin", "manager", "supervisor"),
     getLaboursByProject
 );
+
+
+router.post(
+    "/unassign-labour",
+    auth,
+    roleCheck("admin", "manager", "supervisor"),
+    unassignLabour
+);
+
+router.post(
+    "/reassign-labour",
+    auth,
+    roleCheck("admin", "manager"),
+    reassignLabour
+);
+
 
 
 export default router;
