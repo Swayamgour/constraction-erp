@@ -7,7 +7,8 @@ import { upsertDailyUsage, getDailyUsage } from "../controllers/usageController.
 const router = express.Router();
 
 router.post("/add",
-  upload.disk.single([
+  // upload.disk.single([
+  upload.disk.fields([
     { name: "photo", maxCount: 1 },
     { name: "rcFile", maxCount: 1 },
     { name: "insuranceFile", maxCount: 1 }

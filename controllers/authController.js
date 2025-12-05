@@ -2,7 +2,11 @@ import User from "../models/User.js";
 import Labour from "../models/Labour.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import Attendance from "../models/Attendance.js";
+// import Attendance from "../models/Attendance.js";
+
+import MachineAssignment from "../models/MachineAssignment.js";
+// import Machine from "../models/Machine.js";
+// import Labour from "../models/Labour.js";
 
 import mongoose from "mongoose";
 // import Labour from "../models/Labour.js";
@@ -224,6 +228,8 @@ export const addLabour = async (req, res) => {
 
 // import User from "../models/User.js";
 
+
+
 export const getLabours = async (req, res) => {
     try {
         const labours = await Labour.find()
@@ -231,12 +237,36 @@ export const getLabours = async (req, res) => {
             .select("name phone skillLevel wageType dailyWage monthlySalary labourType category status assignedProjects createdAt")
             .sort({ createdAt: -1 });
 
-        // Add isAssigned key
-        const updatedLabours = labours.map(l => ({
-            ...l.toObject(),
-            isAssigned: l.assignedProjects.length > 0,          // 👈 true/false
-            assignedProjectNames: l.assignedProjects.map(p => p.projectName) // 👈 optional
-        }));
+        const updatedLabours = await Promise.all(
+            labours.map(async (l) => {
+
+                // Find active machine assignment for this labour
+                const activeMachine = await MachineAssignment.findOne({
+                    operatorId: l._id,
+                    releaseDate: null
+                }).populate("machineId", "machineNumber machineType");
+
+                return {
+                    ...l.toObject(),
+                    // Project assign status already there
+                    isAssigned: l.assignedProjects.length > 0,
+
+                    // Machine assign status
+                    isMachineAssigned: activeMachine ? true : false,
+
+                    // Details of assigned machine
+                    assignedMachine: activeMachine
+                        ? {
+                            machineId: activeMachine.machineId._id,
+                            machineNumber: activeMachine.machineId.machineNumber,
+                            machineType: activeMachine.machineId.machineType,
+                            projectId: activeMachine.projectId,
+                            assignDate: activeMachine.assignDate
+                        }
+                        : null
+                };
+            })
+        );
 
         res.status(200).json(updatedLabours);
 
@@ -248,6 +278,7 @@ export const getLabours = async (req, res) => {
         });
     }
 };
+
 
 
 export const getLaboursById = async (req, res) => {

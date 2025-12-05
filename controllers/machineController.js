@@ -3,6 +3,9 @@ import MachineMaintenance from "../models/MachineMaintenance.js";
 import MachineAssignment from "../models/MachineAssignment.js";
 import DailyUsage from "../models/DailyUsage.js";
 import mongoose from "mongoose";
+/* get all machines */
+// import MachineAssignment from "../models/MachineAssignment.js";
+// import Machine from "../models/Machine.js";
 
 /* add machine with files */
 export const addMachine = async (req, res) => {
@@ -29,15 +32,66 @@ export const addMachine = async (req, res) => {
   }
 };
 
-/* get all machines */
+
+
 export const getAllMachines = async (req, res) => {
   try {
-    const machines = await Machine.find().sort({ createdAt: -1 });
+    const machines = await Machine.aggregate([
+      // Join MachineAssignment table
+      {
+        $lookup: {
+          from: "machineassignments",
+          localField: "_id",
+          foreignField: "machineId",
+          as: "assignments"
+        }
+      },
+
+      // isAssigned = true only if assignment exists with releaseDate = null
+      {
+        $addFields: {
+          isAssigned: {
+            $gt: [
+              {
+                $size: {
+                  $filter: {
+                    input: "$assignments",
+                    as: "a",
+                    cond: { $eq: ["$$a.releaseDate", null] } // Active assignment
+                  }
+                }
+              },
+              0
+            ]
+          },
+
+          // Active assignment details
+          activeAssignment: {
+            $arrayElemAt: [
+              {
+                $filter: {
+                  input: "$assignments",
+                  as: "a",
+                  cond: { $eq: ["$$a.releaseDate", null] }
+                }
+              },
+              0
+            ]
+          }
+        }
+      },
+
+      { $sort: { createdAt: -1 } }
+    ]);
+
     res.json({ message: "Machines fetched", machines });
+
   } catch (err) {
     res.status(500).json({ message: "Error", error: err.message });
   }
 };
+
+
 
 /* get single machine + history summary */
 export const getMachineDetails = async (req, res) => {
