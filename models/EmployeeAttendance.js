@@ -18,9 +18,15 @@ const employeeAttendanceSchema = new mongoose.Schema({
         required: true
     },
 
-    timeIn: { type: String, default: null },
-    timeOut: { type: String, default: null },
+    timeIn: { type: Date, default: null },
+    timeOut: { type: Date, default: null },
     workHours: { type: Number, default: 0 },
+
+    // ⭐⭐⭐ NEW FIELDS (IMPORTANT)
+    selfie: { type: String },        // selfie file path
+    latitude: { type: Number },      // GPS
+    longitude: { type: Number },     // GPS
+    timestamp: { type: Date },       // exact punch-in time
 
     markedBy: {
         type: mongoose.Schema.Types.ObjectId,

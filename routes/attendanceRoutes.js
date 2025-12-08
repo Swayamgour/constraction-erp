@@ -72,13 +72,24 @@ router.get(
 
 
 
+// router.post(
+//     "/employee/mark",
+//     auth,
+//     roleCheck("admin", "manager", "supervisor"),
+//     // upload.memory.single("selfie"),   // <<--- IMPORTANT
+//     upload.disk.single("selfie"),
+//     markEmployeeAttendance
+// );
+
 router.post(
     "/employee/mark",
     auth,
-    roleCheck("admin", "manager", "supervisor"),
-    upload.memory.single("selfie"),   // <<--- IMPORTANT
+    upload.single("selfie"),
     markEmployeeAttendance
 );
+
+
+
 
 // optional bulk employee marking (admin/manager)
 router.post(

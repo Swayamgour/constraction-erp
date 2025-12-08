@@ -198,7 +198,7 @@ export const getPurchaseOrder = async (req, res) => {
         const mrId = req.params.id;
 
         const mr = await MaterialRequest.findById(mrId)
-            .populate("projectId", "projectName projectCode")
+            .populate("projectId", "projectName projectCode locationMapLink")
             .populate("items.itemId", "name type unit")
             .populate("items.vendorId", "companyName phone email address")
             .populate("vendorId", "companyName phone email address")   // single vendor mode 

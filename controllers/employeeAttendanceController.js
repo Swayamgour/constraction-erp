@@ -2,6 +2,7 @@ import EmployeeAttendance from "../models/EmployeeAttendance.js";
 import Employee from "../models/Employee.js";
 import User from "../models/User.js";
 import mongoose from "mongoose";
+import cloudinary from "../config/cloudinary.js"
 
 /* helper start of day */
 const startOfDay = (d = new Date()) => {
@@ -15,11 +16,19 @@ const startOfDay = (d = new Date()) => {
 // Accepts body: { employeeId, status } OR form-data with file selfie (optional)
 // ----------------------------------
 export const markEmployeeAttendance = async (req, res) => {
-    try {
-        const { employeeId, status, timeIn, timeOut, workHours } = req.body;
 
-        // console.log("BODY:", req.body);
-        // console.log("FILE:", req.file);
+
+    try {
+        const {
+            employeeId,
+            status,
+            timeIn,
+            timeOut,
+            workHours,
+            latitude,
+            longitude,
+            timestamp
+        } = req.body;
 
         if (!employeeId || !status) {
             return res.status(400).json({ message: "Required fields missing" });
@@ -32,13 +41,33 @@ export const markEmployeeAttendance = async (req, res) => {
             return res.status(400).json({ message: "Attendance already marked today" });
         }
 
+        // ⭐ Upload to cloudinary
+        let selfiePath = null;
+
+
+        if (req.file) {
+            const base64 = `data:${req.file.mimetype};base64,${req.file.buffer.toString("base64")}`;
+
+            const uploadRes = await cloudinary.uploader.upload(base64, {
+                folder: "attendance/selfies"
+            });
+
+            selfiePath = uploadRes.secure_url;
+        }
+
         const record = await EmployeeAttendance.create({
             employeeId,
             status,
-            selfie: req.file?.buffer, // << optional selfie save
-            timeIn: timeIn || new Date(),
-            timeOut: timeOut || null,
+            selfie: selfiePath,
+
+            latitude: latitude ? Number(latitude) : null,
+            longitude: longitude ? Number(longitude) : null,
+            timestamp: timestamp ? new Date(timestamp) : new Date(),
+
+            timeIn: timeIn ? new Date(timeIn) : new Date(),
+            timeOut: timeOut ? new Date(timeOut) : null,
             workHours: workHours || 0,
+
             markedBy: req.user.id,
             date: today
         });
@@ -55,6 +84,8 @@ export const markEmployeeAttendance = async (req, res) => {
         });
     }
 };
+
+
 
 
 // ----------------------------------
@@ -115,15 +146,13 @@ export const markBulkEmployeeAttendance = async (req, res) => {
 // ----------------------------------
 export const approveEmployeeAttendance = async (req, res) => {
     try {
-        const { attendanceId } = req.body;
+        const attendanceId = req.body.attendanceId?.attendanceId;
         const managerId = req.user.id;
 
         if (!attendanceId) return res.status(400).json({ message: "attendanceId is required" });
 
         const record = await EmployeeAttendance.findById(attendanceId);
-        if (!record) {
-            return res.status(404).json({ message: "Record not found" });
-        }
+        if (!record) return res.status(404).json({ message: "Record not found" });
 
         if (record.approvedBy) {
             return res.status(400).json({ message: "Already approved" });

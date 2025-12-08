@@ -1,6 +1,5 @@
 import mongoose from "mongoose";
 
-
 const attendanceSchema = new mongoose.Schema({
     projectId: {
         type: mongoose.Schema.Types.ObjectId,
@@ -55,7 +54,13 @@ const attendanceSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
         default: null
-    }
+    },
+
+    // ⭐ NEW FIELDS FOR SELFIE + LOCATION
+    latitude: { type: Number },
+    longitude: { type: Number },
+    selfie: { type: String },
+    timestamp: { type: Date }
 
 }, { timestamps: true });
 

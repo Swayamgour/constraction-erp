@@ -1,7 +1,11 @@
+import dotenv from "dotenv";
+dotenv.config();   // ← MUST be first
+
 import express from "express";
 import cors from "cors";
-import dotenv from "dotenv";
 import connectDB from "./config/db.js";
+
+// routes import
 import authRoutes from "./routes/authRoutes.js";
 import projectRoutes from "./routes/projectRoutes.js";
 import attendanceRoutes from "./routes/attendanceRoutes.js";
@@ -16,24 +20,21 @@ import taskRoutes from "./routes/taskRoutes.js";
 import reportRoutes from "./routes/reportRoutes.js";
 import grnRoutes from "./routes/grnRoutes.js";
 import consumptionRoutes from "./routes/consumptionRoutes.js";
-// import { labourReport, machineReport, projectReport } from "../controllers/reportController.js";
-// import Labour from "./models/Labour.js";
-
-
 import stockRoutes from "./routes/stockRoutes.js";
 import assignmentRoutes from "./routes/assignmentRoutes.js";
-// import materialRequestRoutes from "./routes/materialRequestRoutes.js";
-// import projectRoutes from "./routes/projectRoutes.js";
-// import authRoutes from "./routes/authRoutes.js"; // Example
-// import vendorRoutes from "./routes/vendorRoutes.js"; // Example
+// import { configureCloudinary } from "./config/cloudinary.js";
 
 
-dotenv.config();
+
 const app = express();
 
 connectDB();
+// configureCloudinary();
+
 app.use(cors());
 app.use(express.json());
+
+app.use("/uploads", express.static("uploads"));
 
 app.use("/api/auth", authRoutes);
 app.use("/api/project", projectRoutes);
