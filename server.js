@@ -43,6 +43,7 @@ app.use("/api/item", itemRoutes);
 app.use("/api/assignLabour", labourRoutes);
 
 app.use("/api/mr", materialRequestRoutes);
+
 app.use("/api/attendance", attendanceRoutes);
 
 // app.use("/api/machine", machineRoutes);
