@@ -196,21 +196,23 @@ export const getEmployeeList = async (req, res) => {
     try {
         const { role } = req.query;
 
-        console.log(role)
-
-        // Filter object - case-insensitive active
         const filter = {
             status: { $regex: /^Present$/i }
         };
 
+        const query = EmployeeAttendance.find(filter)
+            .populate("employeeId", "name phone role")  // 👈 Important
+            .sort({ createdAt: -1 }); // better sorting
+
         if (role) {
-            filter.role = { $regex: new RegExp(`^${role}$`, "i") };
+            query.populate({
+                path: "employeeId",
+                match: { role: { $regex: new RegExp(`^${role}$`, "i") } },
+                select: "name phone role"
+            })
         }
 
-        const employees = await EmployeeAttendance.find(
-            filter,
-            "name phone role status"
-        ).sort({ name: 1 });
+        const employees = await query.exec();
 
         return res.status(200).json({
             message: "Employee list fetched",
@@ -224,6 +226,7 @@ export const getEmployeeList = async (req, res) => {
         });
     }
 };
+
 
 // ----------------------------------
 // 7️⃣ Get Attendance By Date
@@ -280,7 +283,7 @@ export const getMyAttendance = async (req, res) => {
 
         const userId = req.user._id || req.user.id;
 
-        console.log("Logged in userId:", userId);
+        // console.log("Logged in userId:", userId);
 
         const today = new Date();
         today.setHours(0, 0, 0, 0);
@@ -298,8 +301,10 @@ export const getMyAttendance = async (req, res) => {
             .populate("markedBy", "name")
             .populate("approvedBy", "name");
 
-        return res.status(200).json(
-            record
+        return res.status(200).json({
+            record: record
+
+        }
         );
 
     } catch (error) {

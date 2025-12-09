@@ -1,28 +1,35 @@
 import Project from "../models/Project.js";
+import upload from "../middleware/upload.js";
+
 
 // ----------------------------
 // CREATE PROJECT
 // ----------------------------
 export const createProject = async (req, res) => {
     try {
-        const projectData = {
-            ...req.body,
-            createdBy: req.user.id
-        };
+        const files = req.files || {};
+        const body = req.body;
 
-        const project = await Project.create(projectData);
+        const project = await Project.create({
+            ...body,
+            createdBy: req.user.id,
+            files: {
+                workOrderFile: files.workOrderFile?.[0]?.path || null,
+                siteLayoutFile: files.siteLayoutFile?.[0]?.path || null,
+                drawingsFile: files.drawingsFile?.[0]?.path || null,
+                clientKycFile: files.clientKycFile?.[0]?.path || null,
+                projectPhotosFile: files.projectPhotosFile?.[0]?.path || null,
+                notesFile: files.notesFile?.[0]?.path || null,
+            }
+        });
 
-        res.status(201).json({
-            message: "Project Created Successfully",
-            project,
-        });
-    } catch (error) {
-        res.status(500).json({
-            message: "Error creating project",
-            error: error.message,
-        });
+        res.status(201).json({ message: "done", project })
+
+    } catch (err) {
+        res.status(500).json(err)
     }
-};
+}
+
 
 
 

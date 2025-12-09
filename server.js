@@ -22,14 +22,17 @@ import grnRoutes from "./routes/grnRoutes.js";
 import consumptionRoutes from "./routes/consumptionRoutes.js";
 import stockRoutes from "./routes/stockRoutes.js";
 import assignmentRoutes from "./routes/assignmentRoutes.js";
-// import { configureCloudinary } from "./config/cloudinary.js";
+import ganttRoutes from "./routes/ganttRoutes.js";
+// import { cloudinary } from "./config/cloudinary.js";
+import cloudinary from "./config/cloudinary.js";
+
 
 
 
 const app = express();
 
 connectDB();
-// configureCloudinary();
+// cloudinary();
 
 app.use(cors());
 app.use(express.json());
@@ -56,11 +59,13 @@ app.use("/api/stock", stockRoutes);
 app.use("/api/report", reportRoutes);
 app.use("/api/grn", grnRoutes);
 app.use("/api/consumption", consumptionRoutes);
-app.use("/uploads", express.static("uploads"));
+// app.use("/uploads", express.static("uploads"));
 
 app.use("/api/machines", machineRoutes);
 
 app.use("/api/assignments", assignmentRoutes);
+
+app.use("/api/gantt", ganttRoutes);
 // app.use("/api/", consumptionRoutes);
 
 // Fixed the root route - you can't use JSX in Express

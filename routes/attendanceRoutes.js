@@ -1,14 +1,15 @@
 import express from "express";
 import { auth } from "../middleware/auth.js";
 import { roleCheck } from "../middleware/role.js";
-import { upload } from "../middleware/upload.js";
+import upload from "../middleware/upload.js";
 
 import {
     markLabourAttendance,
     markBulkLabourAttendance,
     approveLabourAttendance,
     getPendingLabourAttendance,
-    getLaboursByProject
+    getLaboursByProject,
+    getTodaysPresentLabours
 } from "../controllers/labourAttendanceController.js";
 
 import {
@@ -65,6 +66,13 @@ router.get(
     auth,
     roleCheck("admin", "manager", "supervisor"),
     getLaboursByProject
+);
+
+router.get(
+    "/TodaysPresentLabours/list",
+    auth,
+    roleCheck("admin", "manager", "supervisor"),
+    getTodaysPresentLabours
 );
 
 

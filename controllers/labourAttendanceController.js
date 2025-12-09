@@ -3,6 +3,10 @@ import Attendance from "../models/Attendance.js";
 import Labour from "../models/Labour.js"; // labour assignments to project
 import mongoose from "mongoose";
 
+// import LabourAttendance from "../models/LabourAttendance.js";
+// import Labour from "../models/Labour.js";
+
+
 /* helper: get start-of-day Date object */
 const startOfDay = (d = new Date()) => {
     const dt = new Date(d);
@@ -157,6 +161,8 @@ export const getPendingLabourAttendance = async (req, res) => {
 };
 
 /* --------------------------- LIST LABOURS ------------------------------- */
+
+
 export const getLaboursByProject = async (req, res) => {
     try {
         const { projectId } = req.query;
@@ -174,4 +180,35 @@ export const getLaboursByProject = async (req, res) => {
         });
     }
 };
+
+
+export const getTodaysPresentLabours = async (req, res) => {
+    try {
+
+        // Today start
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        // Tomorrow end
+        const tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+
+        const records = await Attendance.find({
+            status: "Present",
+            date: { $gte: today, $lt: tomorrow }
+        })
+            .populate("labourId")    // full labour detail
+            .sort({ createdAt: -1 });
+
+        return res.status(200).json(records);
+
+    } catch (err) {
+        return res.status(500).json({
+            message: "Error fetching today's present labours",
+            error: err.message
+        });
+    }
+};
+
+
 

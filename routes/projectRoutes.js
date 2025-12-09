@@ -15,11 +15,28 @@ import {
 
 import { auth } from "../middleware/auth.js";
 import { roleCheck } from "../middleware/role.js";
+import upload from "../middleware/upload.js";
+
 
 const router = express.Router();
 
 // CREATE PROJECT (admin only)
-router.post("/create", auth, roleCheck("admin"), createProject);
+// router.post("/create", auth, roleCheck("admin"), createProject);
+router.post(
+    "/create",
+    auth,
+    roleCheck("admin"),
+    upload.fields([
+        { name: "workOrderFile" },
+        { name: "siteLayoutFile" },
+        { name: "drawingsFile" },
+        { name: "clientKycFile" },
+        { name: "projectPhotosFile" },
+        { name: "notesFile" },
+    ]),
+    createProject
+);
+
 
 // UPDATE PROJECT (admin + manager)
 router.put("/update/:id", auth, roleCheck("admin", "manager"), updateProject);

@@ -27,11 +27,13 @@ export const addVendor = async (req, res) => {
             accountNumber,
             ifscCode,
             branchName,
-            itemsSupplied
+            itemsSupplied,
+            aadhaarCardFile,
+            panCardFile
         } = req.body;
 
         // Required field validation
-        if (!companyName  || !contactPerson || !phone || !address || !city || !state || !pincode) {
+        if (!companyName || !contactPerson || !phone || !address || !city || !state || !pincode) {
             return res.status(400).json({ message: "Required fields missing" });
         }
 
@@ -43,7 +45,7 @@ export const addVendor = async (req, res) => {
 
         const vendor = await Vendor.create({
             companyName,
-            
+
             businessType,
             website,
             yearEstablished,
@@ -64,7 +66,11 @@ export const addVendor = async (req, res) => {
             ifscCode,
             branchName,
             itemsSupplied,
-            createdBy: req.user?.id || null
+            createdBy: req.user?.id || null,
+
+            //  createdBy: req.user?.id || null,
+            aadhaarCardFile: req.files?.aadhaarCardFile?.[0]?.path || null,
+            panCardFile: req.files?.panCardFile?.[0]?.path || null,
         });
 
         res.status(201).json({
@@ -190,14 +196,23 @@ export const getVendorDetails = async (req, res) => {
         const vendorId = req.params.id;
 
         const vendor = await Vendor.findById(vendorId)
-            .populate("itemsSupplied", "name type category unit") // Basic items
+            .populate("itemsSupplied", "name type category unit")
             .populate({
                 path: "vendorItems.itemId",
-                select: "name type category unit"   // Detailed item info
+                select: "name type category unit"
             });
 
         if (!vendor) {
             return res.status(404).json({ message: "Vendor not found" });
+        }
+
+        // convert local filename to full URL
+        if (vendor.aadhaarCardFile) {
+            vendor.aadhaarCardFile = `${process.env.BASE_URL}/uploads/${vendor.aadhaarCardFile}`;
+        }
+
+        if (vendor.panCardFile) {
+            vendor.panCardFile = `${process.env.BASE_URL}/uploads/${vendor.panCardFile}`;
         }
 
         return res.status(200).json({
@@ -212,6 +227,7 @@ export const getVendorDetails = async (req, res) => {
         });
     }
 };
+
 
 
 

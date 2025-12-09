@@ -34,6 +34,9 @@ const vendorSchema = new mongoose.Schema(
     gstNumber: { type: String, default: null },
     panNumber: { type: String, default: null },
 
+    aadhaarCardFile: { type: String, default: null },
+    panCardFile: { type: String, default: null },
+
     // ===== Payment Terms =====
     accountHolderName: { type: String, default: null },
     bankName: { type: String, default: null },
