@@ -15,6 +15,8 @@ const ProjectTaskSchema = new mongoose.Schema(
       trim: true,
     },
 
+
+
     // Optional description
     description: {
       type: String,
@@ -42,7 +44,7 @@ const ProjectTaskSchema = new mongoose.Schema(
     // Planned / In Progress / Completed / Delayed / On Hold
     status: {
       type: String,
-      enum: ["Planned", "In Progress", "Completed", "Delayed", "On Hold"],
+      enum: ["planned", "In Progress", "completed", "delayed", "On Hold", "in-progress"],
       default: "Planned",
     },
 
