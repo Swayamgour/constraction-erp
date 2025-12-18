@@ -39,6 +39,15 @@ const taskSchema = new mongoose.Schema(
 
         attachments: [{ type: String }],
         remarks: { type: String, default: "" },
+
+        // ⭐ NEW FIELD ADDED
+        dependencies: [
+            {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: "Task",
+                default: [],
+            }
+        ],
     },
     { timestamps: true }
 );

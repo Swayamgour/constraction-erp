@@ -11,6 +11,7 @@ const usageSchema = new mongoose.Schema({
   notes: String
 }, { timestamps: true });
 
+
 usageSchema.index({ machineId: 1, date: 1 }, { unique: true }); // one DMR per machine per day
 
 export default mongoose.model("DailyUsage", usageSchema);

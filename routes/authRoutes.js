@@ -7,7 +7,8 @@ import {
     getManagersAndSupervisors,
     getManagerDetails,
     getLabours,
-    getLaboursById
+    getLaboursById,
+    updateUserStatus
 } from "../controllers/authController.js";
 
 // import { registerUser } from "../controllers/authController.js";
@@ -37,6 +38,14 @@ router.get(
     auth,
     roleCheck("admin", "manager", "supervisor"),
     getManagersAndSupervisors
+);
+
+
+router.put(
+    "/update-status",
+    auth,
+    roleCheck("admin", "manager", "supervisor"),
+    updateUserStatus
 );
 
 

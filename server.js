@@ -23,6 +23,7 @@ import consumptionRoutes from "./routes/consumptionRoutes.js";
 import stockRoutes from "./routes/stockRoutes.js";
 import assignmentRoutes from "./routes/assignmentRoutes.js";
 import ganttRoutes from "./routes/ganttRoutes.js";
+// import assignWorkRoutes from "./routes/assignWorkRoutes.js";
 // import { cloudinary } from "./config/cloudinary.js";
 import cloudinary from "./config/cloudinary.js";
 
@@ -48,6 +49,8 @@ app.use("/api/assignLabour", labourRoutes);
 app.use("/api/mr", materialRequestRoutes);
 
 app.use("/api/attendance", attendanceRoutes);
+// app.use("/api/assignWork", assignWorkRoutes);
+
 
 // app.use("/api/machine", machineRoutes);
 app.use("/api/machine/allocation", machineAllocationRoutes);

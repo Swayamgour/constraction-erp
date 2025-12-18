@@ -60,7 +60,10 @@ const attendanceSchema = new mongoose.Schema({
     latitude: { type: Number },
     longitude: { type: Number },
     selfie: { type: String },
-    timestamp: { type: Date }
+    timestamp: { type: Date },
+    attendanceToday: {
+        type: Boolean, default: true
+    }
 
 }, { timestamps: true });
 

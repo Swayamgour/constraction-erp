@@ -57,54 +57,40 @@ export const markBulkLabourAttendance = async (req, res) => {
 
         const today = startOfDay();
 
-        // collect labourIds
-        // const labourIds = attendance.map(it => mongoose.Types.ObjectId(it.labourId));
+        const operations = attendance.map(it => ({
+            updateOne: {
+                filter: {
+                    projectId,
+                    labourId: it.labourId,
+                    date: today
+                },
+                update: {
+                    $set: {
+                        status: it.status,
+                        timeIn: it.timeIn || null,
+                        timeOut: it.timeOut || null,
+                        overtimeHours: it.overtimeHours || 0,
+                        markedBy
+                    }
+                },
+                upsert: true   // <-- IMPORTANT
+            }
+        }));
 
-        const labourIds = attendance.map(
-            it => new mongoose.Types.ObjectId(it.labourId)
-        );
+        const result = await Attendance.bulkWrite(operations);
 
-        // fetch existing for today to avoid duplicates
-        const existing = await Attendance.find({
-            projectId,
-            labourId: { $in: labourIds },
-            date: today
-        }).select("labourId");
-
-        const existingSet = new Set(existing.map(e => e.labourId.toString()));
-
-
-        // prepare bulk insert docs
-        const docs = attendance
-            .filter(it => !existingSet.has(String(it.labourId)) && it.labourId && it.status)
-            .map(it => ({
-                projectId,
-                labourId: it.labourId,
-                status: it.status,
-                timeIn: it.timeIn || null,
-                timeOut: it.timeOut || null,
-                overtimeHours: it.overtimeHours || 0,
-                markedBy,
-                date: today
-            }));
-
-        let inserted = [];
-        if (docs.length > 0) {
-            inserted = await Attendance.insertMany(docs, { ordered: false });
-        }
-
-        return res.status(201).json({
-            message: "Bulk attendance marked",
-            totalRequested: attendance.length,
-            totalInserted: inserted.length,
-            inserted
+        return res.status(200).json({
+            message: "Bulk attendance recorded successfully",
+            matched: result.nMatched,
+            modified: result.nModified,
+            upserted: result.upsertedCount
         });
 
     } catch (err) {
-        // if insertMany fails partially, still return info
         return res.status(500).json({ message: "Bulk error", error: err.message });
     }
 };
+
 
 /* ------------------------- APPROVE ATTENDANCE -------------------------- */
 export const approveLabourAttendance = async (req, res) => {

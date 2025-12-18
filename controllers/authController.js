@@ -48,6 +48,13 @@ export const loginUser = async (req, res) => {
         const user = await User.findOne({ email });
         if (!user) return res.status(404).json({ message: "User Not Found" });
 
+        // 🚫 Block inactive users
+        if (user.status === false) {
+            return res.status(403).json({
+                message: "Your account is inactive. Please contact admin."
+            });
+        }
+
         const checkPass = await bcrypt.compare(password, user.password);
         if (!checkPass) return res.status(401).json({ message: "Invalid Password" });
 
@@ -62,10 +69,12 @@ export const loginUser = async (req, res) => {
             token,
             user
         });
+
     } catch (error) {
         res.status(500).json({ message: "Login Error", error });
     }
 };
+
 
 export const getAllUser = async (req, res) => {
     try {
@@ -116,6 +125,30 @@ export const getManagersAndSupervisors = async (req, res) => {
         });
     }
 };
+
+
+export const updateUserStatus = async (req, res) => {
+    try {
+        const { userId, status } = req.body;
+
+        if (!userId) return res.status(400).json({ message: "userId is required" });
+        if (status === undefined) return res.status(400).json({ message: "status is required (true/false)" });
+
+        const user = await User.findByIdAndUpdate(
+            userId,
+            { status },
+            { new: true }
+        );
+
+        if (!user) return res.status(404).json({ message: "User not found" });
+
+        res.status(200).json({ message: "Status updated successfully", user });
+
+    } catch (error) {
+        res.status(500).json({ message: "Server error", error });
+    }
+};
+
 
 
 

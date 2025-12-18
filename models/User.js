@@ -8,7 +8,7 @@ const userSchema = new mongoose.Schema({
 
     role: {
         type: String,
-        enum: ["admin", "manager", "supervisor", "labour" , "operator"],
+        enum: ["admin", "manager", "supervisor", "labour", "operator"],
         default: "labour"
     },
 
@@ -16,7 +16,13 @@ const userSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: "Project",
         default: null
+    },
+
+    status: {
+        type: Boolean,
+        default: true   // true = active, false = inactive
     }
+
 }, { timestamps: true });
 
 export default mongoose.model("User", userSchema);

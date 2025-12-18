@@ -1,5 +1,7 @@
 import Project from "../models/Project.js";
 import Labour from "../models/Labour.js";
+import Attendance from "../models/Attendance.js";
+// import Project from "../models/Project.js";
 
 export const assignLabour = async (req, res) => {
     try {
@@ -47,29 +49,76 @@ export const assignLabour = async (req, res) => {
     }
 };
 
+
+
 export const getLaboursByProject = async (req, res) => {
     try {
         const { projectId } = req.query;
 
-        if (!projectId) return res.status(400).json({ message: "projectId required" });
+        if (!projectId)
+            return res.status(400).json({ message: "projectId required" });
 
-        const project = await Project.findById(projectId)
-            .populate("labours", "name phone skillType");
+        const project = await Project.findById(projectId).populate("labours");
 
-        if (!project) return res.status(404).json({ message: "Project not found" });
+        if (!project)
+            return res.status(404).json({ message: "Project not found" });
+
+        const labourList = project.labours;
+
+        // Aaj ka date
+        const todayStart = new Date();
+        todayStart.setHours(0, 0, 0, 0);
+
+        const todayEnd = new Date();
+        todayEnd.setHours(23, 59, 59, 999);
+
+        // Aaj ki attendance
+        const attendanceRecords = await Attendance.find({
+            projectId,
+            date: { $gte: todayStart, $lte: todayEnd }
+        });
+
+        // Map for fast lookup
+        const attendanceMap = {};
+        attendanceRecords.forEach((att) => {
+            attendanceMap[att.labourId.toString()] = {
+                attendanceToday: true,
+                status: att.status,
+                timeIn: att.timeIn,
+                timeOut: att.timeOut
+            };
+        });
+
+        // Merge labour + attendance
+        const response = labourList.map((lab) => {
+            const att = attendanceMap[lab._id.toString()] || {
+                attendanceToday: false,
+                status: "Not Marked",
+                timeIn: null,
+                timeOut: null
+            };
+
+            return {
+                ...lab.toObject(),
+                ...att
+            };
+        });
 
         res.status(200).json({
-            message: "Assigned Labour List",
-            data: project.labours,
+            message: "Labours with attendance status",
+            data: response,
         });
 
     } catch (error) {
         res.status(500).json({
-            message: "Error fetching assigned labours",
+            message: "Error fetching labours",
             error: error.message,
         });
     }
 };
+
+
+
 
 
 export const unassignLabour = async (req, res) => {
