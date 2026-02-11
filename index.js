@@ -63,6 +63,7 @@ app.use("/api/stock", stockRoutes);
 app.use("/api/report", reportRoutes);
 app.use("/api/grn", grnRoutes);
 app.use("/api/consumption", consumptionRoutes);
+    
 // app.use("/uploads", express.static("uploads"));
 
 app.use("/api/machines", machineRoutes);
@@ -89,10 +90,10 @@ app.get("/api", (req, res) => {
 
 
 
-const PORT = process.env.PORT || 5001;
+const PORT = process.env.PORT || 5000;
 
 
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-app.listen(PORT, '0.0.0.0', () => {
-    console.log(`Server running on port ${PORT}`);
-});
+app.listen(PORT, '0.0.0.0', () => console.log(`Server running on port ${PORT}`));
+// app.listen(PORT, '0.0.0.0', () => {
+//     console.log(`Server running on port ${PORT}`);
+// });
